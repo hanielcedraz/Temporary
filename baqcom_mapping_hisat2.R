@@ -220,6 +220,8 @@ if (opt$indexBuild) {
 }
 
 
+
+
 ## create output folder
 mapping_Folder <- opt$mappingFolder
 if (!file.exists(file.path(mapping_Folder))) dir.create(file.path(mapping_Folder), recursive = TRUE, showWarnings = FALSE)
@@ -238,6 +240,7 @@ cat('\n')
 sam_folder <- paste0(mapping_Folder,'/', 'sam_folder')
 if (!file.exists(file.path(sam_folder))) dir.create(file.path(sam_folder), recursive = TRUE, showWarnings = FALSE)
 
+index_names <- substr(basename(paste0(dir(index_Folder, full.names = TRUE))), 1, nchar(basename(paste0(dir(index_Folder, full.names = TRUE)))) - 6)
 
 hisat2.mapping <- mclapply(mapping, function(index){
     write(paste('Starting Mapping', index$sampleName), stderr())
@@ -245,8 +248,7 @@ hisat2.mapping <- mclapply(mapping, function(index){
         system(paste('hisat2',
                      '-p', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)),
                      '-x',
-                        paste(dirname(index_Folder), '/',opt$indexFiles , sep = ''),
-                        paste0(index_Folder,opt$indexFiles),
+                        paste0(index_Folder,index_names),
                      '-1',
                         paste0(index$PE1, collapse = ","),
                      '-2',
