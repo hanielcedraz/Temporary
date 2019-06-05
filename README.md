@@ -1,3 +1,3 @@
-# Temporary files before publication
+# Temporary files
 
-This files could have some bugs or still sre not done and are not allowed to use.
+Theese files could have some bugs or still are not done and are not allowed to use.
