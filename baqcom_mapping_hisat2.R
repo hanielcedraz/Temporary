@@ -18,7 +18,7 @@ option_list <- list(
                 help = "Directory where to store the mapping results [default %default]",
                 dest = "mappingFolder"),
     make_option(c("-e", "--extractFolder"), type = "character", default = "03-UnmappedReads_HISAT2",
-                help = "Save Unmapped reads to this folder [default %default]",
+                help = "Directory where to store the ummapping reads [default %default]",
                 dest = "extractedFolder"),
     make_option(c("-t", "--mappingTargets"), type = "character", default = "mapping_targets.fa",
                 help = "Path to a fasta file, or tab delimeted file with [target fasta] to run mapping against (default %default); or path to the directory where the genome indices are stored (path to the genoma_file/index_HISAT2.",
@@ -27,19 +27,19 @@ option_list <- list(
                 help = "Path to a gtf file, or tab delimeted file with [target gtf] to run mapping against. If would like to run without gtf file, -g option is not required [default %default]",
                 dest = "gtfTarget"),
     make_option(c("-p", "--processors"), type = "integer", default = 8,
-                help = "number of processors to use [defaults %default]",
+                help = "Number of processors to use [defaults %default]",
                 dest = "procs"),
     make_option(c("-q", "--sampleprocs"), type = "integer", default = 2,
-                help = "number of samples to process at time [default %default]",
+                help = "Number of samples to process at time [default %default]",
                 dest = "mprocs"),
-    make_option(c("-m", "--multiqc"), type  =  "character", default  =  "no",
-                help  =  "multiqc analysis. Specify 'yes' or 'no', (default: no).  [default %default]",
+    make_option(c("-m", "--multiqc"), action = "store_true", default = FALSE,
+                help  =  "Use this option if you ould like to run multiqc analysis. [default %default]",
                 dest  =  "multiqc"),
     make_option(c("-x", "--external"), action  =  'store', type  =  "character", default = 'FALSE',
                 help = "A space delimeted file with a single line contain several external parameters from HISAT2 [default %default]",
                 dest = "externalParameters"),
     make_option(c("-i", "--index"), action = "store_true", default = FALSE,
-                help = "This option directs HISAT2 to re-run genome indices generation job. [%default]",
+                help = "This option directs HISAT2 to run genome indices generation job. [%default]",
                 dest = "indexBuild"),
     make_option(c("-o", "--indexFiles"), type  =  'character', default = 'ht2_base',
                 help = "The basename of the index files to write. [%default]",
@@ -60,7 +60,7 @@ opt <- parse_args(OptionParser(option_list = option_list, description =  paste('
 
 
 multiqc <- system('which multiqc > /dev/null', ignore.stdout = TRUE, ignore.stderr = TRUE)
-if (casefold(opt$multiqc, upper = FALSE) == 'yes') {
+if (opt$multiqc) {
     if (multiqc != 0) {
         write(paste("Multiqc is not installed. If you would like to use multiqc analysis, please install it or remove -r parameter"), stderr())
         stop()
@@ -237,8 +237,8 @@ if (!file.exists(file.path(reportsall))) dir.create(file.path(reportsall), recur
 
 cat('\n')
 #Mapping
-sam_folder <- paste0(mapping_Folder,'/', 'sam_folder')
-if (!file.exists(file.path(sam_folder))) dir.create(file.path(sam_folder), recursive = TRUE, showWarnings = FALSE)
+# sam_folder <- paste0(mapping_Folder,'/', 'sam_folder')
+# if (!file.exists(file.path(sam_folder))) dir.create(file.path(sam_folder), recursive = TRUE, showWarnings = FALSE)
 
 index_names <- substr(basename(paste0(dir(index_Folder, full.names = TRUE))), 1, nchar(basename(paste0(dir(index_Folder, full.names = TRUE)))) - 6)
 
@@ -253,7 +253,7 @@ hisat2.mapping <- mclapply(mapping, function(index){
                         paste0(index$PE1, collapse = ","),
                      '-2',
                         paste0(index$PE2, collapse = ","),
-                     paste0(sam_folder, '/', index$sampleName, '_unsorted_sample.sam'),
+                     paste0(mapping_Folder, '/', index$sampleName, '_unsorted_sample.sam'),
                      '--novel-splicesite-outfile', 'splicesites.novel.txt',
                      '--novel-splicesite-infile', 'splicesites.novel.txt',
                      '2>', paste0(mapping_Folder,'/',index$sampleName,'_summary.log'),
@@ -273,7 +273,7 @@ if (opt$samtools) {
 samtoolsList <- function(samples, reads_folder, column){
     samtoolsfiles <- list()
     for (i in 1:nrow(samples)) {
-        samfiles <- dir(path = file.path(sam_folder), recursive = TRUE, pattern = ".sam$", full.names = TRUE)
+        samfiles <- dir(path = file.path(mapping_Folder), recursive = TRUE, pattern = ".sam$", full.names = TRUE)
         maps <- lapply(c("_unsorted_sample"), grep, x = samfiles, value = TRUE)
         names(maps) <- c("unsorted_sample")
         maps$sampleName <-  samples[i,column]
@@ -313,7 +313,7 @@ if (!all(sapply(samtools.run, "==", 0L))) {
 }
 
 if (opt$deleteSAMfiles) {
-    unlink(sam_folder, recursive = TRUE)
+    unlink(dir(path = file.path(mapping_Folder), recursive = TRUE, pattern = ".sam$", full.names = TRUE))
 }
 
 
@@ -359,7 +359,7 @@ fastqcbefore <- 'FastQCBefore'
 fastqcafter <- 'FastQCAfter'
 multiqc_data <- 'multiqc_data'
 baqcomqcreport <- 'reportBaqcomQC'
-if (casefold(opt$multiqc, upper = FALSE) == 'yes') {
+if (opt$multiqc) {
     if (file.exists(paste0(report_02,'/',fastqcafter)) || file.exists(paste0(report_02,'/',fastqcbefore)) || file.exists(paste0(report_02,'/', multiqc_data))) {
         system2('multiqc', c(opt$mappingFolder, paste0(report_02,'/',fastqcbefore), paste0(report_02,'/',fastqcafter), paste0(report_02,'/',baqcomqcreport), '-o',  reportsall, '-f'))
     }else{
