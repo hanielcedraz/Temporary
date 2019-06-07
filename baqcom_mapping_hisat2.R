@@ -196,10 +196,11 @@ index_Folder <- paste(dirname(opt$mappingTarget), '/', 'index_HISAT2', '/', sep 
 if (!file.exists(file.path(index_Folder))) dir.create(file.path(index_Folder), recursive = TRUE, showWarnings = FALSE)
 
 
-if (opt$indexBuild) {
-    if (length(dir(path = index_Folder, full.names = TRUE, all.files = FALSE, pattern = '.ht2$')) == 0) {
-        #genome.index.function <- function(){
-        #try({
+
+
+
+        genome.index.function <- function(){
+        try({
         system(paste('hisat2-build',
                      '-p', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)), 
                      if (file.exists(opt$gtfTarget)) paste('--ss', 'splicesites_hisat2.txt',
@@ -208,18 +209,28 @@ if (opt$indexBuild) {
                      opt$mappingTarget, paste0(index_Folder,opt$indexFiles),
                      if (file.exists(external_parameters)) line)
         )
-        #})
-        #}
-        
-        #index_genom <- genome.index.function()
-        
-    }else{
-        write(paste("file already exists. Would you like to delete?"), stderr())
-       
-    }
+        })
 }
 
-
+        
+userInput <- function(question) {
+    cat(question)
+    con <- file("stdin")
+    on.exit(close(con))
+    n <- readLines(con, n = 1)
+    return(n)
+}
+        
+if (opt$indexBuild) {
+    if (length(dir(path = index_Folder, full.names = TRUE, all.files = FALSE, pattern = '.ht2$')) == 0) {
+        index_genom <- genome.index.function()
+}else{
+    write(paste("Index genome files already exists."), stderr())
+    if (casefold(userInput("Would you like to delete and re-run index generation? "), upper = FALSE) == 'yes') {
+        index_genom <- genome.index.function()
+     }
+    }
+}
 
 
 ## create output folder
