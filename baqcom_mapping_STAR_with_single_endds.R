@@ -194,44 +194,79 @@ cat('\n')
 ####################
 
 #gtf <- if(file.exists(opt$gtfTarget)){paste('--sjdbGTFfile', opt$gtfTarget)}
-index_Folder <- paste(dirname(opt$mappingTarget), '/', 'index_STAR', '/', sep = '')
 
-if(opt$indexBuild){
-    #file.remove(index_Folder, recursive = TRUE)
-    unlink(index_Folder, recursive = TRUE, force = TRUE)
-    #system(paste('rm -rf', paste0(dirname(opt$mappingTarget), '/', 'index_STAR', '/')))
-}
+index_Folder <- paste(dirname(opt$mappingTarget), '/', 'index_STAR', '/', sep = '')
+if (!file.exists(file.path(paste0(index_Folder, 'Genome')))) dir.create(file.path(index_Folder), recursive = TRUE, showWarnings = FALSE)
+# if(opt$indexBuild){
+#     #file.remove(index_Folder, recursive = TRUE)
+#     unlink(index_Folder, recursive = TRUE, force = TRUE)
+#     #system(paste('rm -rf', paste0(dirname(opt$mappingTarget), '/', 'index_STAR', '/')))
+# }
 
 star.index.function <- function(){
-    index_Folder <- paste(dirname(opt$mappingTarget), '/', 'index_STAR', '/', sep = '')
-    if(!file.exists(file.path(paste(index_Folder, '/', 'Genome', sep = '')))){ dir.create(file.path(index_Folder), recursive = TRUE, showWarnings = FALSE)
-        write(paste('Starting genomeGenerate'), stderr())
-        procs <- ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs));
-        argments_index <- c('--runMode', 'genomeGenerate', '--runThreadN', procs, '--genomeDir', index_Folder, '--genomeFastaFiles', opt$mappingTarget, if(!file.exists(opt$gtfTarget)){
-            write(paste('Running genomeGenerate without gtf file'), stderr())}
-            else{ 
-                c(paste('--sjdbGTFfile', opt$gtfTarget),
-                  paste(' --sjdbOverhang ', opt$annoJunction-1))}, if(file.exists(star_parameters)){line})
-        system2('STAR', args = argments_index)
-        
-    } 
+    try({
+        system(paste('STAR',
+                     '--runMode', 
+                        'genomeGenerate', 
+                     '--runThreadN', 
+                        ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)), 
+                     '--genomeDir', 
+                        index_Folder, 
+                     '--genomeFastaFiles', 
+                        opt$mappingTarget,
+                     if (!file.exists(opt$gtfTarget)) {
+                         write(paste('Running genomeGenerate without gtf file'), stderr())
+                         }
+                     else{ 
+                         c(paste('--sjdbGTFfile', opt$gtfTarget),
+                           paste('--sjdbOverhang', opt$annoJunction - 1))
+                         }, 
+                     if (file.exists(star_parameters)) line)
+        )
+    })
 }
 
-index_genom <- star.index.function()
 
 
-if(opt$outSAMtype == casefold(paste('UnsortedSortedByCoordinate'), upper = FALSE)){
+userInput <- function(question) {
+    cat(question)
+    con <- file("stdin")
+    on.exit(close(con))
+    n <- readLines(con, n = 1)
+    return(n)
+}
+
+if (opt$indexBuild) {
+    if (!file.exists(file.path(paste0(index_Folder, 'Genome')))) {
+        index_genom <- star.index.function()
+    }else{
+        write(paste("Index genome files already exist."), stderr())
+        if (casefold(userInput("Would you like to delete and re-run index generation? [yes(y)|no(n)] "), upper = FALSE) %in% c("yes", "y", 'ye', 'es')) {
+            index_genom <- star.index.function()
+        }
+    }
+}
+
+    # 
+# if (opt$indexBuild) {
+#     if (!file.exists(file.path(paste0(index_Folder, 'Genome')))) {
+#         write(paste('Starting GenomeGenerate'), stderr())
+#         index_genom <- star.index.function()
+#     }
+# }
+
+
+
+if (opt$outSAMtype == casefold(paste('UnsortedSortedByCoordinate'), upper = FALSE)) {
     opt$outSAMtype <- paste('Unsorted SortedByCoordinate')
-}
-
-if(opt$quantMode == casefold(paste('TranscriptomeSAMGeneCounts'), upper = FALSE)){
+}else if (opt$quantMode == casefold(paste('TranscriptomeSAMGeneCounts'), upper = FALSE)) {
     opt$quantMode <- paste('TranscriptomeSAM GeneCounts')
 }
 
 
 ## create output folder
 mapping_Folder <- opt$mappingFolder
-if(!file.exists(file.path(mapping_Folder))) dir.create(file.path(mapping_Folder), recursive = TRUE, showWarnings = FALSE)
+if (!file.exists(file.path(mapping_Folder))) dir.create(file.path(mapping_Folder), recursive = TRUE, showWarnings = FALSE)
 
 
 # creating extracted_Folder
