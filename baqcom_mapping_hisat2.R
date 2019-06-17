@@ -14,10 +14,10 @@ option_list <- list(
     make_option(c("-r", "--inputFolder"), type = "character", default = "01-CleanedReads",
                 help = "Directory where the sequence data is stored [default %default]",
                 dest = "inputFolder"),
-    make_option(c("-b", "--mappingFolder"), type = "character", default = '02-MappedReadsHISAT2',
+    make_option(c("-b", "--mappingFolder"), type = "character", default = '02-MappedReads_HISAT2',
                 help = "Directory where to store the mapping results [default %default]",
                 dest = "mappingFolder"),
-    make_option(c("-e", "--extractFolder"), type = "character", default = "03-UnmappedReadsHISAT2",
+    make_option(c("-e", "--extractFolder"), type = "character", default = "03-UnmappedReads_HISAT2",
                 help = "Directory where to store the ummapping reads [default %default]",
                 dest = "extractedFolder"),
     make_option(c("-t", "--mappingTargets"), type = "character", default = "mapping_targets.fa",
@@ -33,7 +33,7 @@ option_list <- list(
                 help = "Number of samples to process at time [default %default]",
                 dest = "mprocs"),
     make_option(c("-m", "--multiqc"), action = "store_true", default = FALSE,
-                help  =  "Use this option if you ould like to run multiqc analysis. [default %default]",
+                help  =  "Use this option if you would like to run multiqc analysis. [default %default]",
                 dest  =  "multiqc"),
     make_option(c("-x", "--external"), action  =  'store', type  =  "character", default = 'FALSE',
                 help = "A space delimeted file with a single line contain several external parameters from HISAT2 [default %default]",
@@ -44,6 +44,9 @@ option_list <- list(
     make_option(c("-o", "--indexFiles"), type  =  'character', default = 'ht2_base',
                 help = "The basename of the index files to write. [%default]",
                 dest = "indexFiles"),
+    make_option(c("-w", "--pmode"), action = "store_true", default = FALSE,
+                help  =  "Use this option if you would like to run two pass mode mapping. [default %default]",
+                dest  =  "PassMode"),
     make_option(c("-s", "--samtools"), action = "store_true", default = FALSE,
                 help = "Use this option if you want to convert the SAM files to sorted BAM. samtools is required [%default]",
                 dest = "samtools"),
@@ -199,17 +202,17 @@ if (!file.exists(file.path(index_Folder))) dir.create(file.path(index_Folder), r
 
 
 
-        genome.index.function <- function(){
-        try({
-        system(paste('hisat2-build',
-                     '-p', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)),
-                     if (file.exists(opt$gtfTarget)) paste('--ss', 'splicesites_hisat2.txt',
-                                                                                                       '--exon', 'exons_hisat2.txt'),
+genome.index.function <- function(){
+    try({
+    system(paste('hisat2-build',
+                 '-p', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)),
+                 if (file.exists(opt$gtfTarget)) paste('--ss', 'splicesites_hisat2.txt',
+                                                                                                   '--exon', 'exons_hisat2.txt'),
 
-                     opt$mappingTarget, paste0(index_Folder,opt$indexFiles),
-                     if (file.exists(external_parameters)) line)
-        )
-        })
+                 opt$mappingTarget, paste0(index_Folder,opt$indexFiles),
+                 if (file.exists(external_parameters)) line)
+    )
+    })
 }
 
 
@@ -232,12 +235,7 @@ if (opt$indexBuild) {
     }
 }
 
-if (opt$indexBuild == 'no') {
-    if (!all(sapply(index_genom, "==", 0L))) {
-        write(paste("Something went wrong with index building. Some jobs failed"),stderr())
-        stop()
-    }
-}
+
 ## create output folder
 mapping_Folder <- opt$mappingFolder
 if (!file.exists(file.path(mapping_Folder))) dir.create(file.path(mapping_Folder), recursive = TRUE, showWarnings = FALSE)
@@ -258,6 +256,8 @@ cat('\n')
 
 index_names <- substr(basename(paste0(dir(index_Folder, full.names = TRUE))), 1, nchar(basename(paste0(dir(index_Folder, full.names = TRUE)))) - 6)
 
+novel_names <- substr(basename(paste0(samples[1,1])), 1, nchar(basename(paste0(samples[1,1]))) - 02)
+
 hisat2.mapping <- mclapply(mapping, function(index){
     write(paste('Starting Mapping', index$sampleName), stderr())
     try({
@@ -269,10 +269,10 @@ hisat2.mapping <- mclapply(mapping, function(index){
                         paste0(index$PE1, collapse = ","),
                      '-2',
                         paste0(index$PE2, collapse = ","),
-                     '-S',
-                        paste0(mapping_Folder, '/', index$sampleName, '_unsorted_sample.sam'),
-                     '--novel-splicesite-outfile', 'splicesites.novel.txt',
-                     '--novel-splicesite-infile', 'splicesites.novel.txt',
+                     paste0(mapping_Folder, '/', index$sampleName, '_unsorted_sample.sam'),
+                     if (opt$PassMode) {
+                     paste('--novel-splicesite-outfile', paste(novel_names,'splicesites','novel.txt', sep = '_'))
+                     paste('--novel-splicesite-infile', paste(novel_names,'splicesites','novel.txt', sep = '_'))},
                      '2>', paste0(mapping_Folder,'/',index$sampleName,'_summary.log'),
                      if (file.exists(external_parameters)) line))})
 }, mc.cores = opt$mprocs
@@ -280,10 +280,8 @@ hisat2.mapping <- mclapply(mapping, function(index){
 
 
 if (!all(sapply(hisat2.mapping, "==", 0L))) {
-     write(paste("Something went wrong with HISAT2 mapping. Some jobs failed"),stderr())
-     stop()
-}else{
-     write(paste('All jobs finished successfully'), stderr())
+    write(paste("Something went wrong with HISAT2 mapping. Some jobs failed"),stderr())
+    stop()
 }
 
 
