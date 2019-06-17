@@ -1,0 +1,404 @@
+#!/usr/bin/env Rscript
+
+suppressPackageStartupMessages(library("tools"))
+suppressPackageStartupMessages(library("parallel"))
+suppressPackageStartupMessages(library("optparse"))
+
+option_list <- list(
+    make_option(c("-f", "--file"), type = "character", default = "samples.txt",
+                help = "The filename of the sample file [default %default]",
+                dest = "samplesFile"),
+    make_option(c("-c", "--column"), type = "character", default = "SAMPLE_ID",
+                help = "Column name from the sample sheet to use as read folder names [default %default]",
+                dest = "samplesColumn"),
+    make_option(c("-r", "--inputFolder"), type = "character", default = "01-CleanedReads",
+                help = "Directory where the sequence data is stored [default %default]",
+                dest = "inputFolder"),
+    make_option(c("-b", "--mappingFolder"), type = "character", default = '02-MappedReadsHISAT2',
+                help = "Directory where to store the mapping results [default %default]",
+                dest = "mappingFolder"),
+    make_option(c("-e", "--extractFolder"), type = "character", default = "03-UnmappedReadsHISAT2",
+                help = "Directory where to store the ummapping reads [default %default]",
+                dest = "extractedFolder"),
+    make_option(c("-t", "--mappingTargets"), type = "character", default = "mapping_targets.fa",
+                help = "Path to a fasta file, or tab delimeted file with [target fasta] to run mapping against (default %default); or path to the directory where the genome indices are stored (path to the genoma_file/index_HISAT2.",
+                dest = "mappingTarget"),
+    make_option(c("-g", "--gtfTargets"), type = "character", default = "gtf_targets.gtf",
+                help = "Path to a gtf file, or tab delimeted file with [target gtf] to run mapping against. If would like to run without gtf file, -g option is not required [default %default]",
+                dest = "gtfTarget"),
+    make_option(c("-p", "--processors"), type = "integer", default = 8,
+                help = "Number of processors to use [defaults %default]",
+                dest = "procs"),
+    make_option(c("-q", "--sampleprocs"), type = "integer", default = 2,
+                help = "Number of samples to process at time [default %default]",
+                dest = "mprocs"),
+    make_option(c("-m", "--multiqc"), action = "store_true", default = FALSE,
+                help  =  "Use this option if you ould like to run multiqc analysis. [default %default]",
+                dest  =  "multiqc"),
+    make_option(c("-x", "--external"), action  =  'store', type  =  "character", default = 'FALSE',
+                help = "A space delimeted file with a single line contain several external parameters from HISAT2 [default %default]",
+                dest = "externalParameters"),
+    make_option(c("-i", "--index"), action = "store_true", default = FALSE,
+                help = "This option directs HISAT2 to run genome indices generation job. [%default]",
+                dest = "indexBuild"),
+    make_option(c("-o", "--indexFiles"), type  =  'character', default = 'ht2_base',
+                help = "The basename of the index files to write. [%default]",
+                dest = "indexFiles"),
+    make_option(c("-s", "--samtools"), action = "store_true", default = FALSE,
+                help = "Use this option if you want to convert the SAM files to sorted BAM. samtools is required [%default]",
+                dest = "samtools"),
+    make_option(c("-d", "--delete"), action = "store_true", default = FALSE,
+                help = "Use this option if you want to delete the SAM files after convert to sorted BAM. [%default]",
+                dest = "deleteSAMfiles")
+
+)
+
+# get command line options, if help option encountered print help and exit,
+# otherwise if options not found on command line then set defaults,
+opt <- parse_args(OptionParser(option_list = option_list, description =  paste('Authors: OLIVEIRA, H.C. & CANTAO, M.E.', 'Version: 0.2.4', 'E-mail: hanielcedraz@gmail.com', sep = "\n", collapse = '\n')))
+
+
+
+multiqc <- system('which multiqc > /dev/null', ignore.stdout = TRUE, ignore.stderr = TRUE)
+if (opt$multiqc) {
+    if (multiqc != 0) {
+        write(paste("Multiqc is not installed. If you would like to use multiqc analysis, please install it or remove -r parameter"), stderr())
+        stop()
+    }
+}
+
+
+
+# if (!(opt$stranded %in% c("reverse", "yes", "no"))){
+#     cat('\n')
+#     write(paste('May have a mistake with the argument in -s parameter. Please verify if the argument is written in the right way'), stderr())
+#     stop()
+# }
+
+
+#cat('\n')
+######################################################################
+## loadSampleFile
+loadSamplesFile <- function(file, reads_folder, column){
+    ## debug
+    file = opt$samplesFile; reads_folder = opt$inputFolder; column = opt$samplesColumn
+    ##
+    if (!file.exists(file) ) {
+        write(paste("Sample file",file,"does not exist\n"), stderr())
+        stop()
+    }
+    ### column SAMPLE_ID should be the sample name
+    ### rows can be commented out with #
+    targets <- read.table(file,sep = "",header = TRUE,as.is = TRUE)
+    if (!all(c("SAMPLE_ID", "Read_1", "Read_2") %in% colnames(targets))) {
+        write(paste("Expecting the three columns SAMPLE_ID, Read_1 and Read_2 in samples file (tab-delimited)\n"), stderr())
+        stop()
+    }
+    for (i in seq.int(nrow(targets$SAMPLE_ID))) {
+        if (targets[i,column]) {
+            ext <- unique(file_ext(dir(file.path(reads_folder, targets[i,column]), pattern = "gz")))
+            if (length(ext) == 0) {
+                write(paste("Cannot locate fastq or sff file in folder",targets[i,column], "\n"), stderr())
+                stop()
+            }
+            # targets$type[i] <- paste(ext,sep="/")
+        }
+        else {
+            ext <- file_ext(grep("gz", dir(file.path(reads_folder,targets[i, column])), value = TRUE))
+            if (length(ext) == 0) {
+                write(paste(targets[i,column], "is not a gz file\n"), stderr())
+                stop()
+            }
+
+        }
+    }
+    write(paste("samples sheet contains", nrow(targets), "samples to process", sep = " "),stdout())
+    return(targets)
+}
+
+
+
+#pigz <- system('which pigz 2> /dev/null')
+if (system('which pigz 2> /dev/null', ignore.stdout = TRUE, ignore.stderr = TRUE) == 0) {
+    uncompress <- paste('unpigz', '-p', opt$procs)
+}else {
+    uncompress <- 'gunzip'
+}
+
+######################################################################
+## prepareCore
+##    Set up the numer of processors to use
+##
+## Parameters
+##    opt_procs: processors given on the option line
+##    samples: number of samples
+##    targets: number of targets
+prepareCore <- function(opt_procs) {
+    # if opt_procs set to 0 then expand to samples by targets
+    if (detectCores() < opt$procs) {
+        write(paste("number of cores specified (", opt$procs,") is greater than the number of cores available (",detectCores(),")",sep = " "),stdout())
+        paste('Using ', detectCores(), 'threads')
+    }
+}
+
+
+
+
+######################
+mappingList <- function(samples, reads_folder, column){
+    mapping_list <- list()
+    for (i in 1:nrow(samples)) {
+        reads <- dir(path = file.path(reads_folder), pattern = "fastq.gz$", full.names = TRUE)
+        # for (i in seq.int(to=nrow(samples))){
+        #     reads <- dir(path=file.path(reads_folder,samples[i,column]),pattern="gz$",full.names=TRUE)
+        map <- lapply(c("_PE1", "_PE2", "_SE1", "_SE2"), grep, x = reads, value = TRUE)
+        names(map) <- c("PE1", "PE2", "SE1", "SE2")
+        map$sampleName <-  samples[i,column]
+        map$PE1 <- map$PE1[i]
+        map$PE2 <- map$PE2[i]
+        map$SE1 <- map$SE1[i]
+        map$SE2 <- map$SE2[i]
+        for(j in samples$SAMPLE_ID){
+            mapping_list[[paste(map$sampleName)]] <- map
+            mapping_list[[paste(map$sampleName, sep = "_")]]
+        }
+    }
+    write(paste("Setting up", length(mapping_list), "jobs"), stdout())
+    return(mapping_list)
+}
+
+
+external_parameters <- opt$externalParameters
+if (file.exists(external_parameters)) {
+    con = file(external_parameters, open = "r")
+    line = readLines(con, warn = FALSE, ok = TRUE)
+}
+
+samples <- loadSamplesFile(opt$samplesFile, opt$inputFolder, opt$samplesColumn)
+procs <- prepareCore(opt$procs)
+mapping <- mappingList(samples, opt$inputFolder, opt$samplesColumn)
+
+cat('\n')
+
+
+####################
+### GENOME GENERATE
+####################
+
+if (file.exists(opt$gtfTarget)) {
+    system(paste('hisat2_extract_exons.py',  opt$gtfTarget, '>', 'exons_hisat2.txt'))
+    system(paste('hisat2_extract_splice_sites.py', opt$gtfTarget, '>', 'splicesites_hisat2.txt'))
+}
+
+
+
+index_Folder <- paste(dirname(opt$mappingTarget), '/', 'index_HISAT2', '/', sep = '')
+if (!file.exists(file.path(index_Folder))) dir.create(file.path(index_Folder), recursive = TRUE, showWarnings = FALSE)
+
+
+
+
+
+        genome.index.function <- function(){
+        try({
+        system(paste('hisat2-build',
+                     '-p', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)),
+                     if (file.exists(opt$gtfTarget)) paste('--ss', 'splicesites_hisat2.txt',
+                                                                                                       '--exon', 'exons_hisat2.txt'),
+
+                     opt$mappingTarget, paste0(index_Folder,opt$indexFiles),
+                     if (file.exists(external_parameters)) line)
+        )
+        })
+}
+
+
+userInput <- function(question) {
+    cat(question)
+    con <- file("stdin")
+    on.exit(close(con))
+    n <- readLines(con, n = 1)
+    return(n)
+}
+
+if (opt$indexBuild) {
+    if (length(dir(path = index_Folder, full.names = TRUE, all.files = FALSE, pattern = '.ht2$')) == 0) {
+        index_genom <- genome.index.function()
+}else{
+    write(paste("Index genome files already exists."), stderr())
+    if (casefold(userInput("Would you like to delete and re-run index generation? "), upper = FALSE) == 'yes') {
+        index_genom <- genome.index.function()
+     }
+    }
+}
+
+if (opt$indexBuild == 'no') {
+    if (!all(sapply(index_genom, "==", 0L))) {
+        write(paste("Something went wrong with index building. Some jobs failed"),stderr())
+        stop()
+    }
+}
+## create output folder
+mapping_Folder <- opt$mappingFolder
+if (!file.exists(file.path(mapping_Folder))) dir.create(file.path(mapping_Folder), recursive = TRUE, showWarnings = FALSE)
+
+
+# creating extracted_Folder
+# extracted_Folder <- opt$extractedFolder
+# if(!file.exists(file.path(extracted_Folder))) dir.create(file.path(extracted_Folder), recursive = TRUE, showWarnings = FALSE)
+
+#creating report folder
+reportsall <- '05-Reports'
+if (!file.exists(file.path(reportsall))) dir.create(file.path(reportsall), recursive = TRUE, showWarnings = FALSE)
+
+cat('\n')
+#Mapping
+# sam_folder <- paste0(mapping_Folder,'/', 'sam_folder')
+# if (!file.exists(file.path(sam_folder))) dir.create(file.path(sam_folder), recursive = TRUE, showWarnings = FALSE)
+
+index_names <- substr(basename(paste0(dir(index_Folder, full.names = TRUE))), 1, nchar(basename(paste0(dir(index_Folder, full.names = TRUE)))) - 6)
+
+hisat2.mapping <- mclapply(mapping, function(index){
+    write(paste('Starting Mapping', index$sampleName), stderr())
+    try({
+        system(paste('hisat2',
+                     '-p', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)),
+                     '-x',
+                        paste0(index_Folder,index_names),
+                     '-1',
+                        paste0(index$PE1, collapse = ","),
+                     '-2',
+                        paste0(index$PE2, collapse = ","),
+                     '-S',
+                        paste0(mapping_Folder, '/', index$sampleName, '_unsorted_sample.sam'),
+                     '--novel-splicesite-outfile', 'splicesites.novel.txt',
+                     '--novel-splicesite-infile', 'splicesites.novel.txt',
+                     '2>', paste0(mapping_Folder,'/',index$sampleName,'_summary.log'),
+                     if (file.exists(external_parameters)) line))})
+}, mc.cores = opt$mprocs
+)
+
+
+# if (!all(sapply(hisat2.mapping, "==", 0L))) {
+#     write(paste("Something went wrong with HISAT2 mapping. Some jobs failed"),stderr())
+#     stop()
+# }else{
+#     write(paste('All jobs finished successfully'), stderr())
+# }
+
+
+
+if (opt$samtools) {
+samtoolsList <- function(samples, reads_folder, column){
+    samtoolsfiles <- list()
+    for (i in 1:nrow(samples)) {
+        samfiles <- dir(path = file.path(mapping_Folder), recursive = TRUE, pattern = ".sam$", full.names = TRUE)
+        maps <- lapply(c("_unsorted_sample"), grep, x = samfiles, value = TRUE)
+        names(maps) <- c("unsorted_sample")
+        maps$sampleName <-  samples[i,column]
+        maps$unsorted_sample <- maps$unsorted_sample[i]
+
+        samtoolsfiles[[paste(maps$sampleName)]] <- maps
+        samtoolsfiles[[paste(maps$sampleName, sep = "_")]]
+
+    }
+    write(paste("Setting up", length(samtoolsfiles), "jobs"),stdout())
+    return(samtoolsfiles)
+}
+
+
+santools.map <- samtoolsList(samples, opt$inputFolder, opt$samplesColumn)
+
+
+
+
+samtools.run <- mclapply(santools.map, function(index){
+    write(paste('Starting convert sam to bam with samtools:', index$sampleName), stderr())
+    try({
+        system(paste('samtools',
+                     'sort',
+                     '--threads', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)),
+                     paste0(index$unsorted_sample, collapse = ","),
+                     '>', paste0(opt$mappingFolder,'/', index$sampleName, '_sam_sorted_pos.bam')))})
+}, mc.cores = opt$mprocs
+)
+
+
+if (!all(sapply(samtools.run, "==", 0L))) {
+    write(paste("Something went wrong with SAMTOOLS. Some jobs failed"),stderr())
+    stop()
+}
+
+}
+
+if (opt$deleteSAMfiles) {
+    unlink(dir(path = file.path(mapping_Folder), recursive = TRUE, pattern = ".sam$", full.names = TRUE))
+}
+
+
+# # Moving all unmapped files from 02-mappingHISAT2 folder to 03-Unmapped folder
+# system(paste0('mv ', opt$mappingFolder, '/*Unmapped.out.mate* ', opt$extractedFolder, '/'))
+#
+
+
+
+#Creating mapping report
+
+# Final_Folder <- opt$mappingFolder
+# samples <- read.table(opt$samplesFile, header = T, as.is = T)
+
+TidyTable <- function(x) {
+    final <- data.frame('Input_Read_Pairs' = x[1,1], # add you "samples" before that
+                        'Mapped_reads' = x[2,3],
+                        'Mapped_reads_%' = x[2,4],
+                        'reads_unmapped' = x[3,5],
+                        'reads_unmapped_%' = x[3,6],
+                        'reads_uniquely_mapped' = x[4,5],
+                        'reads_uniquely_mapped_%' = x[4,6])
+    return(final)
+}
+
+report_sample <- list()
+for (i in samples[,1]) { # change this to your "samples"
+    report_sample[[i]] <- read.table(paste0(mapping_Folder, '/', i,"_summary.log"),
+                                     header = F, as.is = T, fill = TRUE, sep = ' ',
+                                     skip = 1, blank.lines.skip = TRUE, text = TRUE)
+}
+
+df <- lapply(report_sample, FUN = function(x) TidyTable(x))
+final_df <- do.call("rbind", df)
+
+    write.table(final_df, file = paste0(reportsall, '/', 'mapping_report_HISAT2.txt'), sep = "\t", row.names = TRUE, col.names = TRUE, quote = F)
+
+#
+#
+#MultiQC analysis
+report_02 <- '02-Reports'
+fastqcbefore <- 'FastQCBefore'
+fastqcafter <- 'FastQCAfter'
+multiqc_data <- 'multiqc_data'
+baqcomqcreport <- 'reportBaqcomQC'
+if (opt$multiqc) {
+    if (file.exists(paste0(report_02,'/',fastqcafter)) || file.exists(paste0(report_02,'/',fastqcbefore)) || file.exists(paste0(report_02,'/', multiqc_data))) {
+        system2('multiqc', c(opt$mappingFolder, paste0(report_02,'/',fastqcbefore), paste0(report_02,'/',fastqcafter), paste0(report_02,'/',baqcomqcreport), '-o',  reportsall, '-f'))
+    }else{
+        system2('multiqc', c(opt$mappingFolder, '-o', reportsall, '-f'))
+
+    }
+}
+cat('\n')
+
+#
+if (file.exists(report_02) || file.exists(paste0(report_02,'/',fastqcbefore)) || file.exists(paste0(report_02,'/',fastqcafter))) {
+    system(paste('mv', paste0(report_02, '/', baqcomqcreport), paste0(report_02, '/', 'qc_report_trimmomatic.txt'), paste0(report_02, '/', 'Fast*'), reportsall))
+}
+
+if (file.exists(report_02)) {
+    unlink(report_02, recursive = TRUE)
+}
+#
+#
+
+
+cat('\n')
+write(paste('How to cite:', sep = '\n', collapse = '\n', "Please, visit https://github.com/hanielcedraz/BAQCOM/blob/master/how_to_cite.txt", "or see the file how_to_cite.txt"), stderr())
