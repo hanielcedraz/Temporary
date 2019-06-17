@@ -228,21 +228,20 @@ count.run <- mclapply(couting, function(index){
 
 #####################################################
 ## write out summary tables
-# htseqTables <- sapply(targets,function(tgt){
-#     print(paste("Generating output for target:",tgt[1]))
-#     filesToRead <- unlist(sapply(unique(samples[,opt$samplesColumn]),function(x) file.path(opt$htseqFolder,x,paste(x,tgt[1],"counts",sep="."))))
-#     #	filesToRead <- unlist(sapply(file.path(opt$mappingFolder,unique(samples[,opt$samplesColumn])),dir,pattern=paste(tgt[1],"idxstats",sep="."),full.names=TRUE))
-#     info <- lapply(filesToRead,read.table,sep="\t",as.is=TRUE)
-#     names <- info[[1]][,1]
-#     statidx <- grep("__",names)
-#     stat = sapply(info,function(x) x[statidx,2])
-#     info = sapply(info,function(x) x[-statidx,2])
-#
-#     htseq_data <- data.frame("Reads in feature"=colSums(info),"Reads NOT in feature"=stat[1,],"Reads ambiguous"=stat[2,],"Reads too low qual"
-#                              =stat[3,],"Percent Assigned To Feature"=colSums(info)/(colSums(info)+colSums(stat)),"Number of Features"=nrow(info),"Number of 0 count features"=apply(info,2,function(x)sum(x == 0)))
-#     write.table(htseq_data,file.path(opt$htseqFolder,paste(tgt[1],"summary","txt",sep=".")),row.names=TRUE,col.names=TRUE,quote=FALSE,sep="\t")
-#     #    htseq_data
-# })
+htseqTables <- sapply(samples$SAMPLE_ID, function(x){
+    print(paste("Generating HTSeqReportSummary to", x[1]))
+    filesToRead <- unlist(sapply(unique(samples[,opt$samplesColumn]), function(x) file.path(opt$countsFolder, paste0(x[1],'_HTSeq.counts'))))
+    #	filesToRead <- unlist(sapply(file.path(opt$mappingFolder,unique(samples[,opt$samplesColumn])),dir,pattern=paste(tgt[1],"idxstats",sep="."),full.names=TRUE))
+    info <- lapply(filesToRead, read.table, sep = "\t", as.is = TRUE)
+    names <- info[[1]][,1]
+    statidx <- grep("__", names)
+    stat = sapply(info, function(x) x[statidx,2])
+    info = sapply(info, function(x) x[-statidx,2])
+
+    htseq_data <- data.frame("Reads_in_feature" = colSums(info), "Reads_NOT_in feature" = stat[1,], "Reads_ambiguous" = stat[2,], "Reads_too_low_qual" = stat[3,], "Percent_Assigned_To_Feature" = colSums(info)/(colSums(info) + colSums(stat)), "Number_of_Features" = nrow(info), "Number_of_0_count features" = apply(info, 2, function(x)sum(x == 0)))
+    write.table(htseq_data, file.path(opt$countsFolder, paste0("HTSeqReportSummary.txt")), row.names = TRUE, col.names = TRUE, quote = FALSE, sep = "\t")
+    #    htseq_data
+})
 
 reportsall <- '05-Reports'
 if (!file.exists(file.path(reportsall))) dir.create(file.path(reportsall), recursive = TRUE, showWarnings = FALSE)
