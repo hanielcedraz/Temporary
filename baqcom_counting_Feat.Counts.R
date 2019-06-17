@@ -39,7 +39,7 @@ option_list <- list(
     make_option(c('-r', '--order'), type = 'character', default = 'name',
                 help = 'Pos or name. Sorting order of alignment_file. Paired-end sequencing data must be sorted either by position or by read name, and the sorting order must be specified. Ignored for single-end data. [default %default]',
                 dest = 'order'),
-    make_option(c("-m", "--multiqc"), type = 'logical', default = FALSE,
+    make_option(c("-m", "--multiqc"), action = "store_true", default = FALSE,
                 help  =  "Use this option if you ould like to run multiqc analysis. [default %default]",
                 dest  =  "multiqc"),
     make_option(c("-p", "--consensus"), action = 'store_true', type = "character", default = FALSE,
@@ -68,7 +68,7 @@ opt <- parse_args(OptionParser(option_list = option_list, description =  paste('
 multiqc <- system('which multiqc > /dev/null', ignore.stdout = TRUE, ignore.stderr = TRUE)
 if (opt$multiqc) {
     if (multiqc != 0) {
-        write(paste("Multiqc is not installed. If you would like to use multiqc analysis, please install it or remove -r parameter"), stderr())
+        write(paste("Multiqc is not installed. If you would like to use multiqc analysis, please install it or remove -m parameter"), stderr())
         stop()
     }
 }
