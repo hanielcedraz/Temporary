@@ -192,6 +192,7 @@ count.run <- mclapply(couting, function(index){
                         opt$minaQual,
                      index$bam_sorted_pos,
                      opt$gtfTarget,
+                     if(file.exists(external_parameters)) line,
                      '1>', paste0(counting_Folder,'/', index$sampleName, '_HTSeq.counts'),
                      paste0('2>', counting_Folder, '/', index$sampleName, '_HTSeq.out')
                      ))})
