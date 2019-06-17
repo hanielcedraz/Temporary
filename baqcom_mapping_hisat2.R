@@ -279,12 +279,12 @@ hisat2.mapping <- mclapply(mapping, function(index){
 )
 
 
-# if (!all(sapply(hisat2.mapping, "==", 0L))) {
-#     write(paste("Something went wrong with HISAT2 mapping. Some jobs failed"),stderr())
-#     stop()
-# }else{
-#     write(paste('All jobs finished successfully'), stderr())
-# }
+if (!all(sapply(hisat2.mapping, "==", 0L))) {
+     write(paste("Something went wrong with HISAT2 mapping. Some jobs failed"),stderr())
+     stop()
+}else{
+     write(paste('All jobs finished successfully'), stderr())
+}
 
 
 
