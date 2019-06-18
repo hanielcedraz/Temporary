@@ -201,9 +201,9 @@ count.run <- mclapply(couting, function(index){
                      '-f',
                         opt$format,
                      '-r',
-                        opt$order,
+                        casefold(opt$order, upper = FALSE),
                      '-s',
-                        opt$stranded,
+                         casefold(opt$stranded, upper = FALSE),
                      '-a',
                         opt$minaQual,
                      if (opt$format == 'sam') {index$unsorted_sample},
@@ -241,7 +241,7 @@ htseqTables <- sapply(samples$SAMPLE_ID, function(x){
     info = sapply(info, function(x) x[-statidx,2])
 
     htseq_data <- data.frame("Reads_in_feature" = colSums(info), "Reads_NOT_in feature" = stat[1,], "Reads_ambiguous" = stat[2,], "Reads_too_low_qual" = stat[3,], "Percent_Assigned_To_Feature" = colSums(info)/(colSums(info) + colSums(stat)), "Number_of_Features" = nrow(info), "Number_of_0_count features" = apply(info, 2, function(x)sum(x == 0)))
-    write.table(htseq_data, file.path(reportsall, paste0("HTSeqReportSummary.txt")), row.names = TRUE, col.names = TRUE, quote = FALSE, sep = "\t")
+    write.table(htseq_data, file.path(reportsall, paste0("HTSeqCountingReportSummary.txt")), row.names = TRUE, col.names = TRUE, quote = FALSE, sep = "\t")
     #    htseq_data
 })
 
