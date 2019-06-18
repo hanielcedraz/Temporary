@@ -217,13 +217,15 @@ count.run <- mclapply(couting, function(index){
 )
 
 
-# if (!all(sapply(count.run, "==", 0L))) {
-#     write(paste("Something went wrong with HTSeq-Count. Some jobs failed"),stderr())
-#     stop()
-# }else{
-#     write(paste('All jobs finished successfully'), stderr())
-# }
+if (!all(sapply(count.run, "==", 0L))) {
+     write(paste("Something went wrong with HTSeq-Count. Some jobs failed"),stderr())
+     stop()
+}else{
+     write(paste('All jobs finished successfully'), stderr())
+}
 
+reportsall <- '05-Reports'
+if (!file.exists(file.path(reportsall))) dir.create(file.path(reportsall), recursive = TRUE, showWarnings = FALSE)
 
 
 #####################################################
@@ -239,12 +241,10 @@ htseqTables <- sapply(samples$SAMPLE_ID, function(x){
     info = sapply(info, function(x) x[-statidx,2])
 
     htseq_data <- data.frame("Reads_in_feature" = colSums(info), "Reads_NOT_in feature" = stat[1,], "Reads_ambiguous" = stat[2,], "Reads_too_low_qual" = stat[3,], "Percent_Assigned_To_Feature" = colSums(info)/(colSums(info) + colSums(stat)), "Number_of_Features" = nrow(info), "Number_of_0_count features" = apply(info, 2, function(x)sum(x == 0)))
-    write.table(htseq_data, file.path(opt$countsFolder, paste0("HTSeqReportSummary.txt")), row.names = TRUE, col.names = TRUE, quote = FALSE, sep = "\t")
+    write.table(htseq_data, file.path(reportsall, paste0("HTSeqReportSummary.txt")), row.names = TRUE, col.names = TRUE, quote = FALSE, sep = "\t")
     #    htseq_data
 })
 
-reportsall <- '05-Reports'
-if (!file.exists(file.path(reportsall))) dir.create(file.path(reportsall), recursive = TRUE, showWarnings = FALSE)
 
 # #
 #MultiQC analysis
