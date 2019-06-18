@@ -257,6 +257,28 @@ if (!all(sapply(count.run, "==", 0L))) {
 reportsall <- '05-Reports'
 if (!file.exists(file.path(reportsall))) dir.create(file.path(reportsall), recursive = TRUE, showWarnings = FALSE)
 
+
+TidyTable <- function(x) {
+    final <- data.frame('Input_Read_Pairs' = x[1,1], # add you "samples" before that
+                        'Assigned' = x[1,2],
+                        'Unassigned_Unmapped' = x[2,2],
+                        'Unassigned_MappingQuality' = x[3,2],
+                        'Unassigned_Duplicate' = x[6,2],
+                        'Unassigned_NoFeatures' = x[10,2],
+                        'Unassigned_Ambiguity' = x[12,2])
+    return(final)
+}
+
+report_sample <- list()
+for (i in samples[,1]) { # change this to your "samples"
+    report_sample[[i]] <- read.table(paste0(opt$countsFolder, '/', i,"_featCount.counts.summary"), header = F, as.is = T, fill = TRUE, skip = 1, blank.lines.skip = TRUE, text = TRUE)
+}
+
+df <- lapply(report_sample, FUN = function(x) TidyTable(x))
+final_df <- do.call("rbind", df)
+
+write.table(final_df, file = paste0(reportsall, '/', 'FeatCountsReportSummary.txt'), sep = "\t", row.names = TRUE, col.names = TRUE, quote = F)
+
 # #
 #MultiQC analysis
 report_02 <- '02-Reports'
