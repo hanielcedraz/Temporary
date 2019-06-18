@@ -366,7 +366,7 @@ for (i in samples[,1]) { # change this to your "samples"
 df <- lapply(report_sample, FUN = function(x) TidyTable(x))
 final_df <- do.call("rbind", df)
 
-    write.table(final_df, file = paste0(reportsall, '/', 'mapping_report_HISAT2.txt'), sep = "\t", row.names = TRUE, col.names = TRUE, quote = F)
+    write.table(final_df, file = paste0(reportsall, '/', 'HISAT2MappingReportSummary.txt'), sep = "\t", row.names = TRUE, col.names = TRUE, quote = F)
 
 #
 #
