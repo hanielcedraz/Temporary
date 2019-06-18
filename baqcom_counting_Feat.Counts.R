@@ -75,7 +75,7 @@ if (opt$multiqc) {
 
 
 
-if (!(opt$stranded %in% c("reverse", "yes", "no"))){
+if (!(casefold(opt$stranded, upper = FALSE) %in% c("reverse", "yes", "no"))) {
     cat('\n')
     write(paste('May have a mistake with the argument in -s parameter. Please verify if the argument is written in the right way'), stderr())
     stop()
@@ -157,7 +157,7 @@ prepareCore <- function(opt_procs) {
 ######################
 countingList <- function(samples, reads_folder, column){
     counting_list <- list()
-    if (opt$format == 'bam') {
+    if (casefold(opt$format, upper = FALSE) == 'bam') {
         for (i in 1:nrow(samples)) {
             files <- dir(path = file.path(reads_folder), recursive = TRUE, pattern = paste0('.bam$'), full.names = TRUE)
 
@@ -170,7 +170,7 @@ countingList <- function(samples, reads_folder, column){
             counting_list[[paste(count$sampleName, sep = "_")]]
 
         }
-    }else if (opt$format == 'sam') {
+    }else if (casefold(opt$format, upper = FALSE) == 'sam') {
         for (i in 1:nrow(samples)) {
             files <- dir(path = file.path(reads_folder), recursive = TRUE, pattern = paste0('.sam$'), full.names = TRUE)
 
@@ -236,8 +236,10 @@ count.run <- mclapply(couting, function(index){
                      '-a',
                      opt$gtfTarget,
                      if (file.exists(external_parameters)) line,
-                     if (opt$format == 'sam') {index$unsorted_sample},
-                     if (opt$format == 'bam') {index$bam_sorted_pos},
+                     if (casefold(opt$format, upper = FALSE) == 'sam')
+                         index$unsorted_sample,
+                     if (casefold(opt$format, upper = FALSE) == 'bam')
+                         index$bam_sorted_pos,
                      '-o', paste0(counting_Folder,'/', index$sampleName, '_featCount.counts')
                      #paste0('2>', counting_Folder, '/', index$sampleName, '_HTSeq.out')
         ))})
