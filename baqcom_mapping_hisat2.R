@@ -348,11 +348,11 @@ if (opt$deleteSAMfiles) {
 TidyTable <- function(x) {
     final <- data.frame('Input_Read_Pairs' = x[1,1], # add you "samples" before that
                         'Mapped_reads' = x[2,3],
-                        'Mapped_reads_%' = x[2,4],
-                        'reads_unmapped' = x[3,5],
-                        'reads_unmapped_%' = x[3,6],
-                        'reads_uniquely_mapped' = x[4,5],
-                        'reads_uniquely_mapped_%' = x[4,6])
+                        'Percent_Mapped_reads' = x[2,4],
+                        'Reads_unmapped' = x[3,5],
+                        'Percent_reads_unmapped' = x[3,6],
+                        'Reads_uniquely_mapped' = x[4,5],
+                        'Percent_reads_uniquely_mapped' = x[4,6])
     return(final)
 }
 
