@@ -229,7 +229,7 @@ if (opt$indexBuild) {
         index_genom <- genome.index.function()
 }else{
     write(paste("Index genome files already exists."), stderr())
-    if (casefold(userInput("Would you like to delete and re-run index generation? "), upper = FALSE) == 'yes') {
+    if (casefold(userInput("Would you like to delete and re-run index generation? (yes or no) "), upper = FALSE) == 'yes') {
         index_genom <- genome.index.function()
      }
     }
