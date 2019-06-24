@@ -291,8 +291,10 @@ baqcomqcreport <- 'reportBaqcomQC'
 
 if (opt$multiqc) {
     if (file.exists(paste0(reportsall,'/',fastqcafter)) & file.exists(paste0(reportsall,'/',fastqcbefore)) & file.exists(paste0(reportsall,'/', multiqc_data))) {
+        system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
         system2('multiqc', paste(opt$countsFolder, opt$inputFolder, paste0(reportsall,'/',fastqcbefore), paste0(reportsall,'/',fastqcafter), paste0(reportsall,'/',baqcomqcreport), '-o',  reportsall, '-f'))
     }else{
+        system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
         system2('multiqc', paste(opt$countsFolder, '-o', reportsall, '-f'))
     }
 }
@@ -300,7 +302,6 @@ cat('\n')
 
 #
 if (file.exists(report_02)) {
-    system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
     unlink(report_02, recursive = TRUE)
 }
 # #
