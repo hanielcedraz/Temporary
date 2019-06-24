@@ -292,5 +292,4 @@ write.table(final_df, file = paste0(reports, '/', 'QualityControlReportSummary.t
 system2('cat', paste0(reports,'/','QualityControlReportSummary.txt'))
 
 cat('\n')
-
-write(paste('How to cite:', sep = '\n', collapse = '\n', "Please, visit https://github.com/hanielcedraz/BAQCOM/blob/master/how_to_cite.txt", "or see the file how_to_cite.txt"), stderr())
+write(paste('How to cite:', sep = '\n', collapse = '\n', "Please, visit https://github.com/hanielcedraz/BAQCOM/blob/master/how_to_cite.txt", "or see the file 'how_to_cite.txt'"), stderr())
