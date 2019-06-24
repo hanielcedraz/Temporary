@@ -52,7 +52,7 @@ if [[  -f baqcomTrimmomatic ]];
     then
         cat "baqcomTrimmomatic" | sed "s|XXX|$PWD|" > baqcomTrimmomatic.R
         chmod +x baqcomTrimmomatic.R;
-        rm baqcom_qc
+        rm baqcomTrimmomatic
     else
         echo "baqcomTrimmomatic.R already exists"
 fi
