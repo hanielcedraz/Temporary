@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-trimmomatic_dir <- paste('/Volumes/RED_32GB/BAQCOM/Trimmomatic-0.39/')
+trimmomatic_dir <- paste('XXX/Trimmomatic-0.39/')
 trimmomatic <- paste(trimmomatic_dir, 'trimmomatic-0.39.jar', sep = "")
 ########################################
 ### LOADING PACKAGES
