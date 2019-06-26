@@ -349,8 +349,8 @@ if (!file.exists(file.path(reportsall))) dir.create(file.path(reportsall), recur
 
 TidyTable <- function(x) {
   final <- data.frame('Number_Input_reads' = x[1,2],
-                      'Number_Mapped_reads' = x[4,2],
-                      'Percent_Mapped_reads' = x[5,2],
+                      'Number_Uniquely_Mapped' = x[4,2],
+                      'Percent_Uniquely_Mapped' = x[5,2],
                       'Number_Mapped_multiLoci' = x[19,2],
                       'Percent_Mapped_multiLoci' = x[20,2],
                       'Number_Mapped_manyLoci' = x[21,2],
