@@ -42,11 +42,11 @@ option_list <- list(
     make_option(c("-s", "--sampleprocs"), type = "integer", default = 2,
                 help = "number of samples to process at each time [default %default]",
                 dest = "sampleToprocs"),
-    make_option(c("-a", "--adapters"), type  = 'character', default = 'TruSeq2-PE.fa',
+    make_option(c("-a", "--adapters"), type  = 'character', default = 'TruSeq3-PE-2.fa',
                 help = "Cut adapter and other illumina-specific sequences from the read. Options: TruSeq3-PE-2.fa, TruSeq3-SE.fa, NexteraPE-PE.fa, TruSeq3-PE.fa, TruSeq2-PE.fa, TruSeq2-SE.fa
  [default %default]",
                 dest = "adapters"),
-    make_option(c('-q', '--quality'), type = 'integer', default = 15,
+    make_option(c('-q', '--quality'), type = 'integer', default = 20,
                 help = 'Quality score to use during trimming [default %default]',
                 dest = 'qual'),
     make_option(c('-L', '--leading'), type = 'integer', default = 3,
@@ -55,10 +55,10 @@ option_list <- list(
     make_option(c('-t', '--trailing'), type = 'integer', default = 3,
                 help = 'Remove trailing low quality or N bases [default %default]',
                 dest = 'trailing'),
-    make_option(c('-w', '--window'), type = 'integer', default = 4,
+    make_option(c('-w', '--window'), type = 'integer', default = 10,
                 help = 'Quality window to use during trimming quality [default %default]',
                 dest = 'window'),
-    make_option(c("-m", "--miniumumLength"), type = "integer", default = 70,
+    make_option(c("-m", "--miniumumLength"), type = "integer", default = 50,
                 help = "Discard reads less then minimum length [default %default]",
                 dest = "minL")
 )
