@@ -426,7 +426,8 @@ if (!file.exists(paste0(mapping_Folder, '/', samples[1,1],'_STAR_ReadsPerGene.ou
 # }
 
 if (file.exists(report_02)) {
-  unlink(report_02, recursive = TRUE)
+    system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
+    unlink(report_02, recursive = TRUE)
 }
 
 
