@@ -392,6 +392,8 @@ if (opt$multiqc) {
     system2('multiqc', paste(opt$mappingFolder, '-o', reportsall, '-f'))
 
   }
+}else if (!opt$multiqc) {
+    system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
 }
 cat('\n')
 
