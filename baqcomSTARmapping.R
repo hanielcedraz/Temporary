@@ -398,10 +398,6 @@ if (opt$multiqc) {
 cat('\n')
 
 
-# if (file.exists(report_02)) {
-#   unlink(report_02, recursive = TRUE)
-# }
-
 # Creating GeneCounts folder and preparing files
 if (casefold(opt$stranded, upper = FALSE) == 'no') {
   opt$stranded <- 2
