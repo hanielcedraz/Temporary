@@ -229,11 +229,20 @@ if (opt$indexBuild) {
         index_genom <- genome.index.function()
 }else{
     write(paste("Index genome files already exists."), stderr())
-    if (casefold(userInput("Would you like to delete and re-run index generation? (yes or no) "), upper = FALSE) == 'yes') {
-        index_genom <- genome.index.function()
-     }
+    repeat {
+        inp <- userInput("Would you like to delete and re-run index generation? (yes or no) ")
+        if (inp %in% c("yes", "no")) {break()
+        }else {write("Specify 'yes' or 'no'", stderr())
+                }
+    }
+
+    if (inp == "yes") {index_genom <- genome.index.function()
+    }
     }
 }
+
+
+
 
 
 ## create output folder
@@ -259,7 +268,7 @@ index_names <- substr(basename(paste0(dir(index_Folder, full.names = TRUE))), 1,
 novel_names <- substr(basename(paste0(samples[1,1])), 1, nchar(basename(paste0(samples[1,1]))) - 02)
 
 hisat2.mapping <- mclapply(mapping, function(index){
-    write(paste('Starting Mapping', index$sampleName), stderr())
+    write(paste('Starting Mapping sample', index$sampleName), stderr())
     try({
         system(paste('hisat2',
                      '-p', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)),
