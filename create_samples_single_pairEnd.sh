@@ -29,14 +29,14 @@ done
 shift $((OPTIND-1))
 
 # check if command line argument is empty or not present
-# if [ "$1" == "" ];
-# then
-#     echo "Parameter -p is empty"
-#     echo "Please enter at a valid argument"
-#     echo "Example: create_samples -p pair"
-#     echo "Example: create_samples -p single"
-#     exit 0
-# fi
+if [ "$1" != " "  ] && [ "$1" != "pair"  ] && [ "$1" != "single" ];
+then
+    echo "Parameter -p is empty or a invalid argument"
+    echo "Please enter a valid argument"
+    echo "Example: create_samples.sh -p pair"
+    echo "Example: create_samples.sh -p single"
+    exit 0
+fi
 
 
 pair=$1
@@ -76,28 +76,57 @@ rm -f $file
 
 dir="00-Fastq"
 
-if [ "$ENDFILE" == "pair" ];
+pair.end.function() {
+echo "Creating samples file using Pair-End files"
+if [ -d "$dir" ]
+#if [ -d "$(ls -A "$dir")" ]
 then
-    if [ -d "$dir" ]
-    #if [ -d "$(ls -A "$dir")" ]
+    if [ "$(ls -A $dir)" ]
     then
-        if [ "$(ls -A $dir)" ]
-        then
-                cd $dir
-                echo -e 'SAMPLE_ID\tRead_1\tRead_2' > ../samples.txt
-                paste <(ls *_R1_001.fastq.gz | cut -d "_" -f1) <(ls *_R1_001.fastq.gz) <(ls *_R2_001.fastq.gz) >> ../samples.txt
-                cd -
-                echo -e "\033[1;31m Samples_File ($file) successfully created"
-                echo -e "\033[0m"
-        else
-                echo -e "\033[1;31m $dir exist and is empty"
-                echo -e "\033[0m"
-        fi
+            cd $dir
+            echo -e 'SAMPLE_ID\tRead_1\tRead_2' > ../samples.txt
+            paste <(ls *_R1_001.fastq.gz | cut -d "_" -f1) <(ls *_R1_001.fastq.gz) <(ls *_R2_001.fastq.gz) >> ../samples.txt
+            cd ..
+            echo -e "\033[1;31m Samples_File ($file) successfully created"
+            echo -e "\033[0m"
     else
-            echo -e "\033[1;31m $dir not found"
+            echo -e "\033[1;31m $dir exist and is empty"
             echo -e "\033[0m"
     fi
-elif [ "$ENDFILE" == "single" ]
+else
+        echo -e "\033[1;31m $dir not found"
+        echo -e "\033[0m"
+fi
+}
+
+single.end.function() {
+echo "Creating samples file using single-end files"
+if [ -d "$dir" ]
+#if [ -d "$(ls -A "$dir")" ]
 then
-    echo "running create_samples with single-end files"
+    if [ "$(ls -A $dir)" ]
+    then
+            cd $dir
+            echo -e 'SAMPLE_ID\tRead_1' > ../samples.txt
+            paste <(ls *_R1_001.fastq.gz | cut -d "_" -f1) <(ls *_R1_001.fastq.gz) >> ../samples.txt
+            #echo "You are in this path"
+            cd ..
+            echo -e "\033[1;31m Samples_File ($file) successfully created"
+            echo -e "\033[0m"
+    else
+            echo -e "\033[1;31m $dir exist and is empty"
+            echo -e "\033[0m"
+    fi
+else
+        echo -e "\033[1;31m $dir not found"
+        echo -e "\033[0m"
+fi
+}
+
+if [ "$ENDFILE" == "pair" ];
+then
+    pair.end.function
+elif [ "$ENDFILE" == "single" ];
+then
+    single.end.function
 fi
