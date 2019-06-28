@@ -228,16 +228,32 @@ userInput <- function(question) {
   return(n)
 }
 
+
+# if (!(userInput("Would you like to delete and re-run index generation? (yes or no) ") %in% c("yes", "no"))) {
+#   cat('\n')
+#   write(paste('May have a mistake with the argument in -s parameter. Please verify if the argument is written in the right way'), stderr())
+#   stop()
+# }
+
 if (opt$indexBuild) {
   if (!file.exists(file.path(paste(index_Folder, '/', 'Genome', sep = '')))) {
     index_genom <- star.index.function()
   }else{
     write(paste("Index genome files already exists."), stderr())
-    if (casefold(userInput("Would you like to delete and re-run index generation? (yes or no) "), upper = FALSE) == 'yes') {
-      index_genom <- star.index.function()
+    repeat {
+      inp <- userInput("Would you like to delete and re-run index generation? (yes or no) ")
+      if (inp %in% c("yes", "no")) {break()
+      }else {write("Specify 'yes' or 'no'", stderr())
+        }
+    }
+    if (inp == "yes") {index_genom <- star.index.function()
     }
   }
+
 }
+
+
+
 
 
 if (opt$outSAMtype == casefold(paste('UnsortedSortedByCoordinate'), upper = FALSE)) {
@@ -264,7 +280,7 @@ cat('\n')
 
 if (!opt$singleEnd) {
   star.pair.mapping <- mclapply(mapping, function(index){
-    write(paste('Starting Mapping'), stderr())
+    write(paste('Starting Mapping sample', index$sampleName), stderr())
     try({
       system(paste('STAR',
                    '--genomeDir',
@@ -392,11 +408,13 @@ if (opt$multiqc) {
     system2('multiqc', paste(opt$mappingFolder, '-o', reportsall, '-f'))
 
   }
-}else if (!opt$multiqc) {
-    system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
 }
 cat('\n')
 
+
+# if (file.exists(report_02)) {
+#   unlink(report_02, recursive = TRUE)
+# }
 
 # Creating GeneCounts folder and preparing files
 if (casefold(opt$stranded, upper = FALSE) == 'no') {
@@ -422,8 +440,8 @@ if (!file.exists(paste0(mapping_Folder, '/', samples[1,1],'_STAR_ReadsPerGene.ou
 # }
 
 if (file.exists(report_02)) {
-    system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
-    unlink(report_02, recursive = TRUE)
+  system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
+  unlink(report_02, recursive = TRUE)
 }
 
 
