@@ -2,6 +2,7 @@
 
 usage="$(basename "$0") [-p <pair or single>] -- SampleCreate version 0.2.4
 where:
+     Use this script to create a sample file from 00-Fastq folder
     -p  Specify if files are pair ou single-end, and create a samples file using these files"
 #Specify if files are pair ou single-end, and create a samples file using these files
 
@@ -9,9 +10,6 @@ unset OPTARG
 unset OPTIND
 
 
-
-
-# VERSION="v1.5"
 while getopts ':hs:p' option; do
   case "$option" in
     h) echo "$usage"
@@ -40,33 +38,14 @@ fi
 
 
 pair=$1
-#single=$1
 if [ "$pair" == "pair" ]
 then
     ENDFILE="pair"
-    #echo $ENDFILE
 elif [ "$pair" == "single" ]
 then
     ENDFILE="single"
-    #echo $ENDFILE
 fi
 
-#echo $ENDFILE
-
-#echo
-#INFILE=$1
-#
-#
-#
-# if [[ $1 == "-h" ]];
-#     then
-#         echo "#Use this script to create a sample file from 00-Fastq folder"
-#         exit 0
-# elif [[ $# > 0 ]];
-#     then
-#         echo "It is not a valid argment. Try ./install.sh -h"
-#         exit 1
-# fi
 
 
 
@@ -79,7 +58,6 @@ dir="00-Fastq"
 pair.end.function() {
 echo "Creating samples file using Pair-End files"
 if [ -d "$dir" ]
-#if [ -d "$(ls -A "$dir")" ]
 then
     if [ "$(ls -A $dir)" ]
     then
@@ -90,7 +68,7 @@ then
             echo -e "\033[1;31m Samples_File ($file) successfully created"
             echo -e "\033[0m"
     else
-            echo -e "\033[1;31m $dir exist and is empty"
+            echo -e "\033[1;31m $dir exist but is empty"
             echo -e "\033[0m"
     fi
 else
@@ -109,12 +87,11 @@ then
             cd $dir
             echo -e 'SAMPLE_ID\tRead_1' > ../samples.txt
             paste <(ls *_R1_001.fastq.gz | cut -d "_" -f1) <(ls *_R1_001.fastq.gz) >> ../samples.txt
-            #echo "You are in this path"
             cd ..
             echo -e "\033[1;31m Samples_File ($file) successfully created"
             echo -e "\033[0m"
     else
-            echo -e "\033[1;31m $dir exist and is empty"
+            echo -e "\033[1;31m $dir exist but is empty"
             echo -e "\033[0m"
     fi
 else
@@ -122,6 +99,8 @@ else
         echo -e "\033[0m"
 fi
 }
+
+
 
 if [ "$ENDFILE" == "pair" ];
 then
