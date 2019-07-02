@@ -53,7 +53,7 @@ reads from the same pair must have. This argument is only applicable for paired-
                 help  =  "If specified, the chimeric fragments (those fragments that have their two ends aligned to different chromosomes) will NOT be counted. [default %default]",
                 dest  =  "countChimericFragments"),
     make_option(c("-x", "--external"), action  =  'store', type  =  "character", default = 'FALSE',
-                help = "A space delimeted file with a single line contain several external parameters from HISAT2 [default %default]",
+                help = "A whitespace-separated file with a single line contain several external parameters from HISAT2 [default %default]",
                 dest = "externalParameters")
 )
 
