@@ -36,7 +36,7 @@ option_list <- list(
                 help  =  "Use this option if you would like to run multiqc analysis. [default %default]",
                 dest  =  "multiqc"),
     make_option(c("-x", "--external"), action  =  'store', type  =  "character", default = FALSE,
-                help = "A space delimeted file with a single line contain several external parameters from HISAT2 [default %default]",
+                help = "A whitespace-separated file with a single line contain several external parameters from HISAT2 [default %default]",
                 dest = "externalParameters"),
     make_option(c("-i", "--index"), action = "store_true", default = FALSE,
                 help = "This option directs HISAT2 to run genome indices generation job. [%default]",
