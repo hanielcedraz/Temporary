@@ -1,3 +1,4 @@
+#
 # BAQCOM 0.1.1 - 02/20/2019 
   Pipeline released
 
@@ -9,7 +10,7 @@
 
 
 
-
+#
 # BAQCOM Version 0.2.0 - 03/19/2019 
  ### baqcom_mapping Version 0.2.0 - 03/19/2019 
   Now you can run samples in parallel 
@@ -41,7 +42,7 @@
   
 
 
-
+#
 # BAQCOM 0.3.0 - 07/20/2019
 ### baqcomSTARmapping
   Change pattern folder names
