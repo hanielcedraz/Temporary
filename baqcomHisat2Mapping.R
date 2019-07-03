@@ -367,7 +367,7 @@ if (opt$unmapped) {
         if (!file.exists(file.path(extracted_Folder))) dir.create(file.path(extracted_Folder), recursive = TRUE, showWarnings = FALSE)
         #
         samtools.ummaped <- mclapply(santools.map, function(index){
-            write(paste('Starting extract ummaped reads:', index$sampleName), stderr())
+            write(paste('Starting extract ummapped reads:', index$sampleName), stderr())
             try({
                 system(paste('samtools',
                              'view',
