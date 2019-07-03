@@ -1,4 +1,4 @@
-<b> Version 0.1.1 - 02/20/2019 </b><br>
+##  BAQCOM 0.1.1 - 02/20/2019 </b><br>
   Pipeline released<br><br>
   <h1></h1>
 <b> baqcom_mapping Version 0.1.2 - 03/11/2019 </b><br>
@@ -7,6 +7,8 @@
 <b> baqcom_qc Version 0.1.2 - 03/11/2019 </b><br>
   added FastQC plots<br><br>
 <h1></h1>
+<h1></h1>
+##  BAQCOM Version 0.2.0 - 03/19/2019 </b><br>
 <b> baqcom_mapping Version 0.2.0 - 03/19/2019 </b><br>
   Now you can run samples in parallel <br><br>
 <h1></h1>
@@ -36,7 +38,8 @@
   Minor bugs fixed
   <br><br>
 <h1></h1>
-##BAQCOM 0.3.0 - 07/20/2019
+<h1></h1>
+##  BAQCOM 0.3.0 - 07/20/2019
 <b> baqcomSTARmapping </b><br>
   Change pattern folder names<br>
   Set up single-end analysis<br>
