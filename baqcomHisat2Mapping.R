@@ -358,7 +358,7 @@ if (opt$unmapped) {
                              '-f',
                              4,
                              paste0(index$unsorted_sample),
-                             '>', paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_sorted_pos.bam')))})
+                             '>', paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_unsorted_pos.bam')))})
         }, mc.cores = opt$mprocs
         )
     }else if (opt$samtools) {
