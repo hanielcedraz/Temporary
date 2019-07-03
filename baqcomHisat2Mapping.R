@@ -20,6 +20,9 @@ option_list <- list(
     make_option(c("-e", "--extractFolder"), type = "character", default = "03-UnmappedReadsHISAT2",
                 help = "Directory where to store the ummapping reads [default %default]",
                 dest = "extractedFolder"),
+    make_option(c("-u", "--unmapped"), action = "store_true", default = FALSE,
+                help = "This option rus samtools to extract unmapped reads from bam or sam files. [%default]",
+                dest = "unmapped"),
     make_option(c("-t", "--mappingTargets"), type = "character", default = "mapping_targets.fa",
                 help = "Path to a fasta file, or tab delimeted file with [target fasta] to run mapping against (default %default); or path to the directory where the genome indices are stored (path to the genoma_file/index_HISAT2.)",
                 dest = "mappingTarget"),
@@ -36,7 +39,7 @@ option_list <- list(
                 help  =  "Use this option if you would like to run multiqc analysis. [default %default]",
                 dest  =  "multiqc"),
     make_option(c("-x", "--external"), action  =  'store', type  =  "character", default = FALSE,
-                help = "A whitespace-separated file with a single line contain several external parameters from HISAT2 [default %default]",
+                help = "A space delimeted file with a single line contain several external parameters from HISAT2 [default %default]",
                 dest = "externalParameters"),
     make_option(c("-i", "--index"), action = "store_true", default = FALSE,
                 help = "This option directs HISAT2 to run genome indices generation job. [%default]",
@@ -161,7 +164,7 @@ mappingList <- function(samples, reads_folder, column){
         map$PE2 <- map$PE2[i]
         map$SE1 <- map$SE1[i]
         map$SE2 <- map$SE2[i]
-        for(j in samples$SAMPLE_ID){
+        for(j in samples$SAMPLE_ID) {
             mapping_list[[paste(map$sampleName)]] <- map
             mapping_list[[paste(map$sampleName, sep = "_")]]
         }
@@ -294,8 +297,6 @@ if (!all(sapply(hisat2.mapping, "==", 0L))) {
 }
 
 
-
-if (opt$samtools) {
 samtoolsList <- function(samples, reads_folder, column){
     samtoolsfiles <- list()
     for (i in 1:nrow(samples)) {
@@ -313,11 +314,8 @@ samtoolsList <- function(samples, reads_folder, column){
     return(samtoolsfiles)
 }
 
-
+if (opt$samtools) {
 santools.map <- samtoolsList(samples, opt$inputFolder, opt$samplesColumn)
-
-
-
 
 samtools.run <- mclapply(santools.map, function(index){
     write(paste('Starting convert sam to bam with samtools:', index$sampleName), stderr())
@@ -343,10 +341,58 @@ if (opt$deleteSAMfiles) {
 }
 
 
-# # Moving all unmapped files from 02-mappingHISAT2 folder to 03-Unmapped folder
-# system(paste0('mv ', opt$mappingFolder, '/*Unmapped.out.mate* ', opt$extractedFolder, '/'))
-#
 
+# creating extracted_Folder
+if (opt$unmapped) {
+    if (!opt$samtools) {
+        santools.map <- samtoolsList(samples, opt$inputFolder, opt$samplesColumn)
+        extracted_Folder <- opt$extractedFolder
+        if (!file.exists(file.path(extracted_Folder))) dir.create(file.path(extracted_Folder), recursive = TRUE, showWarnings = FALSE)
+        samtools.ummaped <- mclapply(santools.map, function(index){
+            write(paste('Starting extract ummaped reads:', index$sampleName), stderr())
+            try({
+                system(paste('samtools',
+                             'view',
+                             '--threads', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)),
+                             '-b',
+                             '-f',
+                             4,
+                             paste0(index$unsorted_sample),
+                             '>', paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_sorted_pos.bam')))})
+        }, mc.cores = opt$mprocs
+        )
+    }else if (opt$samtools) {
+        santools.map <- samtoolsList(samples, opt$inputFolder, opt$samplesColumn)
+        extracted_Folder <- opt$extractedFolder
+        if (!file.exists(file.path(extracted_Folder))) dir.create(file.path(extracted_Folder), recursive = TRUE, showWarnings = FALSE)
+        #
+        samtools.ummaped <- mclapply(santools.map, function(index){
+            write(paste('Starting extract ummaped reads:', index$sampleName), stderr())
+            try({
+                system(paste('samtools',
+                             'view',
+                             '--threads', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)),
+                             '-b',
+                             '-f',
+                                 4,
+                             paste0(opt$mappingFolder,'/',index$sampleName,'_sam_sorted_pos.bam'),
+                             '>', paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_sorted_pos.bam')))})
+        }, mc.cores = opt$mprocs
+        )
+
+
+    if (!all(sapply(samtools.run, "==", 0L))) {
+        write(paste("Something went wrong with SAMTOOLS. Some jobs failed"),stderr())
+        stop()
+        }
+    }
+}
+
+
+
+if (opt$deleteSAMfiles) {
+    unlink(dir(path = file.path(mapping_Folder), recursive = TRUE, pattern = ".sam$", full.names = TRUE))
+}
 
 
 #Creating mapping report
