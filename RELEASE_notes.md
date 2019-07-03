@@ -1,40 +1,16 @@
-##  BAQCOM 0.1.1 - 02/20/2019 
+## BAQCOM 0.1.1 - 02/20/2019 
   Pipeline released
-  <h1></h1>
- baqcom_mapping Version 0.1.2 - 03/11/2019 
-  Changed genomeDir parameter in baqcom_mapping. Now does not need to indicate the genome index path. The default is the same path to gtf_target.
- <h1></h1>
- baqcom_qc Version 0.1.2 - 03/11/2019 
-  added FastQC plots
-<h1></h1>
-<h1></h1>
 
-##  BAQCOM Version 0.2.0 - 03/19/2019 
- # baqcom_mapping Version 0.2.0 - 03/19/2019 
- Now you can run samples in parallel 
-<h1></h1>
- # baqcom_qc Version 0.2.0 - 03/21/2019 
- Now you can run samples in parallel 
-<h1></h1>
- # baqcom_qc and baqcom_mapping Version 0.2.1 - 04/11/2019 
- Including multiqc analysis 
-<h1></h1>
- # baqcom_qc Version 0.2.2 - 04/15/2019 
- Including two more options on trimming: LEADING and TRAILING 
- Including pigz option
-<h1></h1>
- # baqcom_mapping Version 0.2.2 - 0##  BAQCOM 0.1.1 - 02/20/2019 
-  Pipeline released
-  
  baqcom_mapping Version 0.1.2 - 03/11/2019 
   Changed genomeDir parameter in baqcom_mapping. Now does not need to indicate the genome index path. The default is the same path to gtf_target.
- 
+
  baqcom_qc Version 0.1.2 - 03/11/2019 
   added FastQC plots
 
 
 
-##  BAQCOM Version 0.2.0 - 03/19/2019 
+
+## BAQCOM Version 0.2.0 - 03/19/2019 
  # baqcom_mapping Version 0.2.0 - 03/19/2019 
   Now you can run samples in parallel 
 
