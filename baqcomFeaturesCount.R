@@ -53,7 +53,7 @@ reads from the same pair must have. This argument is only applicable for paired-
                 help  =  "If specified, the chimeric fragments (those fragments that have their two ends aligned to different chromosomes) will NOT be counted. [default %default]",
                 dest  =  "countChimericFragments"),
     make_option(c("-x", "--external"), action  =  'store', type  =  "character", default = 'FALSE',
-                help = "A whitespace-separated file with a single line contain several external parameters from HISAT2 [default %default]",
+                help = "A space delimeted file with a single line contain several external parameters from HISAT2 [default %default]",
                 dest = "externalParameters")
 )
 
@@ -242,6 +242,20 @@ count.run <- mclapply(couting, function(index){
                          index$bam_sorted_pos,
                      '-o', paste0(counting_Folder,'/', index$sampleName, '_featCount.counts')
                      #paste0('2>', counting_Folder, '/', index$sampleName, '_HTSeq.out')
+        ))
+        system(paste('cat',
+                     paste0(counting_Folder,'/', index$sampleName, '_featCount.counts'),
+                     '|',
+                     "awk '{print $1, $6}'",
+                     '|',
+                     "sed '1d'",
+                     '>',
+                      paste0(counting_Folder,'/', index$sampleName, '_featCountReady.counts')#,
+                     # '|',
+                     # 'mv',
+                     # paste0(counting_Folder,'/', index$sampleName, '_featCountReady.counts'),
+                     # paste0(counting_Folder,'/', index$sampleName, '_featCount.counts')
+
         ))})
 }, mc.cores = opt$mprocs
 )
