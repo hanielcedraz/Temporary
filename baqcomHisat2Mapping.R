@@ -358,7 +358,14 @@ if (opt$unmapped) {
                              '-f',
                              4,
                              paste0(index$unsorted_sample),
-                             '>', paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_unsorted_pos.bam')))})
+                             '>', paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_unsorted_pos.bam')))
+                system(paste('samtools',
+                             'bam2fq',
+                             paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_unsorted_pos.bam'),
+                             '>', paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_unsorted_pos.fastq')
+
+                ))
+                unlink(paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_unsorted_pos.bam'))})
         }, mc.cores = opt$mprocs
         )
     }else if (opt$samtools) {
@@ -376,7 +383,14 @@ if (opt$unmapped) {
                              '-f',
                                  4,
                              paste0(opt$mappingFolder,'/',index$sampleName,'_sam_sorted_pos.bam'),
-                             '>', paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_sorted_pos.bam')))})
+                             '>', paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_sorted_pos.nam')))
+                system(paste('samtools',
+                             'bam2fq',
+                             paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_sorted_pos.bam'),
+                             '>', paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_sorted_pos.fastq')
+
+                ))
+                unlink(paste0(opt$extractedFolder,'/', index$sampleName, '_unmapped_unsorted_pos.bam'))})
         }, mc.cores = opt$mprocs
         )
 
@@ -401,12 +415,12 @@ if (opt$deleteSAMfiles) {
 # samples <- read.table(opt$samplesFile, header = T, as.is = T)
 
 TidyTable <- function(x) {
-    final <- data.frame('Input_Read_Pairs' = x[1,1], # add you "samples" before that
-                        'Mapped_reads' = x[2,3],
-                        'Percent_Mapped_reads' = x[2,4],
-                        'Reads_unmapped' = x[3,5],
-                        'Percent_reads_unmapped' = x[3,6],
-                        'Reads_uniquely_mapped' = x[4,5],
+    final <- data.frame('Input_Read_Pairs' = x[1,3], # add you "samples" before that
+                        'Mapped_reads' = x[3,5],
+                        'Percent_Mapped_reads' = x[3,6],
+                        'Reads_unmapped' = x[2,5],
+                        'Percent_reads_unmapped' = x[2,6],
+                        'Reads_multi_mapped' = x[4,5],
                         'Percent_reads_uniquely_mapped' = x[4,6])
     return(final)
 }
@@ -415,7 +429,7 @@ report_sample <- list()
 for (i in samples[,1]) { # change this to your "samples"
     report_sample[[i]] <- read.table(paste0(mapping_Folder, '/', i,"_summary.log"),
                                      header = F, as.is = T, fill = TRUE, sep = ' ',
-                                     skip = 1, blank.lines.skip = TRUE, text = TRUE)
+                                     skip = 2, blank.lines.skip = TRUE, text = TRUE)
 }
 
 df <- lapply(report_sample, FUN = function(x) TidyTable(x))
