@@ -58,7 +58,7 @@ if [[  -f baqcomTrimmomatic ]];
 fi
 
 
-      chmod +x baqcomFeaturesCount.R baqcomHisat2Mapping.R baqcomHtseqCounting.R baqcomSTARmapping.R create_samples.sh run_test.sh
+      chmod +x baqcomFeaturesCount.R baqcomHisat2Mapping.R baqcomHtseqCounting.R baqcomSTARmapping.R createSamples.sh run_test.sh
 
 if [[ -e bin/fastqc_v0.11.8.zip ]];
    then
