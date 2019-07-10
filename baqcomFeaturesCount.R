@@ -250,11 +250,11 @@ count.run <- mclapply(couting, function(index){
                      '|',
                      "sed '1d'",
                      '>',
-                      paste0(counting_Folder,'/', index$sampleName, '_featCountReady.counts')#,
-                     # '|',
-                     # 'mv',
-                     # paste0(counting_Folder,'/', index$sampleName, '_featCountReady.counts'),
-                     # paste0(counting_Folder,'/', index$sampleName, '_featCount.counts')
+                      paste0(counting_Folder,'/', index$sampleName, '_featCountReady.counts'),
+                     '|',
+                     'mv',
+                     paste0(counting_Folder,'/', index$sampleName, '_featCountReady.counts'),
+                     paste0(counting_Folder,'/', index$sampleName, '_featCount.counts')
 
         ))})
 }, mc.cores = opt$mprocs
