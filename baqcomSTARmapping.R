@@ -45,13 +45,13 @@ option_list <- list(
               help = 'Select the output according to the strandedness of your data. options: no, yes and reverse [default %default]',
               dest = 'stranded'),
   make_option(c("-x", "--external"), action  =  'store', type  =  "character", default = 'FALSE',
-              help = "A whitespace-separated file with a single line contain several external parameters from STAR [default %default]",
+              help = "A space delimeted file with a single line contain several external parameters from STAR [default %default]",
               dest = "externalParameters"),
   make_option(c("-i", "--index"), action = "store_true", default = FALSE,
               help = "This option directs STAR to re-run genome indices generation job. [%default]",
               dest = "indexBuild"),
   make_option(c("-z", "--single"), action = "store_true", default = FALSE,
-              help = "Use this option if you would like to use single-end files. [%default]",
+              help = "Use this option if you have single-end files. [%default]",
               dest = "singleEnd"),
   make_option(c("-o", "--outSAMtype"), type = "character", default = "SortedByCoordinate",
               help = "Output sorted by coordinate Aligned.sortedByCoord.out.bam file (default: %default); Output unsorted Aligned.out.bam file (Unsorted); Output both unsorted and sorted files (UnsortedSortedByCoordinate).",
@@ -66,7 +66,7 @@ option_list <- list(
 )
 # get command line options, if help option encountered print help and exit,
 # otherwise if options not found on command line then set defaults,
-opt <- parse_args(OptionParser(option_list = option_list, description =  paste('Authors: OLIVEIRA, H.C. & CANTAO, M.E.', 'Version: 0.2.4', 'E-mail: hanielcedraz@gmail.com', sep = "\n", collapse = '\n')))
+opt <- parse_args(OptionParser(option_list = option_list, description =  paste('Authors: OLIVEIRA, H.C. & CANTAO, M.E.', 'Version: 0.2.4', 'E-mail: hanielcedraz@gmail.com', sep = "\n", collapse = '\n'), usage = paste('baqcomSTARmapping.R', '-t', 'reference genome', '[options]')))
 
 
 
@@ -401,8 +401,9 @@ multiqc_data <- 'multiqc_data'
 baqcomqcreport <- 'reportBaqcomQC'
 if (opt$multiqc) {
   if (file.exists(paste0(report_02,'/',fastqcafter)) & file.exists(paste0(report_02,'/',fastqcbefore)) & file.exists(paste0(report_02,'/', multiqc_data))) {
-    system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
     system2('multiqc', paste(opt$mappingFolder, paste0(report_02,'/',fastqcbefore), paste0(report_02,'/',fastqcafter), paste0(report_02,'/',baqcomqcreport), '-o',  reportsall, '-f'))
+    unlink(paste0(report_02, '/', 'multiqc*'), recursive = TRUE)
+    system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
   }else{
     system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
     system2('multiqc', paste(opt$mappingFolder, '-o', reportsall, '-f'))
