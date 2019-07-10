@@ -22,7 +22,7 @@
   Including multiqc analysis 
 
  ### baqcom_qc Version 0.2.2 - 04/15/2019 
-  Including two more options on trimming: LEADING and TRAILING 
+  Including two more options on trimming: LEADING and TRAILING <br>
   Including pigz option
 
  ### baqcom_mapping Version 0.2.2 - 04/22/2019 
@@ -30,14 +30,14 @@
   
 
  ### baqcom_qc and baqcom_mapping Version 0.2.3 - 04/23/2019 
-  Change the folder names pattern
-  Set up pigz as default of compressed files
+  Change the folder names pattern <br>
+  Set up pigz as default of compressed files <br>
   Minor bugs fixed
   
 
  ### baqcom_mapping Version 0.2.4 - 05/20/2019 
-  Change requirements to genome generate, mapping and counting
-  Set up more parameters
+  Change requirements to genome generate, mapping and counting <br>
+  Set up more parameters <br>
   Minor bugs fixed
   
 
@@ -45,13 +45,13 @@
 #
 # BAQCOM 0.3.0 - 07/20/2019
 ### baqcomSTARmapping
-  Change pattern folder names
-  Set up single-end analysis
+  Change pattern folder names <br>
+  Set up single-end analysis <br>
   Minor bugs fixed
   
 ### baqcomTrimmomatic 
-  Change pattern folder names
-  Set up single-end analysis
+  Change pattern folder names <br>
+  Set up single-end analysis <br>
   Minor bugs fixed
   
 ### baqcomHisat2Mapping 
