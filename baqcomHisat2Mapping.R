@@ -447,8 +447,9 @@ multiqc_data <- 'multiqc_data'
 baqcomqcreport <- 'reportBaqcomQC'
 if (opt$multiqc) {
     if (file.exists(paste0(report_02,'/',fastqcafter)) & file.exists(paste0(report_02,'/',fastqcbefore)) & file.exists(paste0(report_02,'/', multiqc_data))) {
-        system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
         system2('multiqc', paste(opt$mappingFolder, paste0(report_02,'/',fastqcbefore), paste0(report_02,'/',fastqcafter), paste0(report_02,'/',baqcomqcreport), '-o',  reportsall, '-f'))
+        unlink(paste0(report_02, '/', 'multiqc*'), recursive = TRUE)
+        system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
     }else{
         system(paste('cp -r', paste0(report_02, '/*'), paste0(reportsall,'/')))
         system2('multiqc', paste(opt$mappingFolder, '-o', reportsall, '-f'))
