@@ -101,9 +101,11 @@ loadSamplesFile <- function(file, reads_folder, column) {
   ### column SAMPLE_ID should be the sample name
   ### rows can be commented out with #
   targets <- read.table(file, header = TRUE, as.is = TRUE)
-  if ( !all(c("SAMPLE_ID", "Read_1", "Read_2") %in% colnames(targets))) {
-    write(paste("Expecting the three columns SAMPLE_ID, Read_1 and Read_2 in samples file (tab-delimited)\n"), stderr())
-    stop()
+  if (!opt$singleEnd) {
+    if (!all(c("SAMPLE_ID", "Read_1", "Read_2") %in% colnames(targets))) {
+      write(paste("Expecting the three columns SAMPLE_ID, Read_1 and Read_2 in samples file (tab-delimited)\n"), stderr())
+      stop()
+    }
   }
   for (i in seq.int(nrow(targets$SAMPLE_ID))) {
     if (targets[i, column]) {
