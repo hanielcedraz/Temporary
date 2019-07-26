@@ -54,7 +54,7 @@ option_list <- list(
                 help = "Use this option if you want to convert the SAM files to sorted BAM. samtools is required [%default]",
                 dest = "samtools"),
     make_option(c("-z", "--single"), action = "store_true", default = FALSE,
-                help = "Use this option if you have single-end files. [%default]",
+                help = "Use this option if you have single-end files[doesn't need an argument]. [%default]",
                 dest = "singleEnd"),
     make_option(c("-d", "--delete"), action = "store_true", default = FALSE,
                 help = "Use this option if you want to delete the SAM files after convert to sorted BAM. [%default]",
