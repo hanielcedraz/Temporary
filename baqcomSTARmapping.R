@@ -328,7 +328,7 @@ if (!opt$singleEnd) {
                    '--readFilesCommand',
                    paste(uncompress, '-c'),
                    '--readFilesIn',
-                   index$SE1,
+                   index$PE1,
                    '--outFileNamePrefix',
                    paste0(opt$mappingFolder, '/', index$sampleName, '_STAR_'),
                    '--outReadsUnmapped Fastx',
