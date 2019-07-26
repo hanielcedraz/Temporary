@@ -59,7 +59,7 @@ option_list <- list(
                 help = 'Quality window to use during trimming quality [default %default]',
                 dest = 'window'),
     make_option(c("-z", "--single"), action = "store_true", default = FALSE,
-                help = "Use this option if you have single-end files. [%default]",
+                help = "Use this option if you have single-end files[doesn't need an argument]. [%default]",
                 dest = "singleEnd"),
     make_option(c("-m", "--miniumumLength"), type = "integer", default = 50,
                 help = "Discard reads less then minimum length [default %default]",
