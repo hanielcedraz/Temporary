@@ -51,7 +51,7 @@ option_list <- list(
               help = "This option directs STAR to re-run genome indices generation job. [%default]",
               dest = "indexBuild"),
   make_option(c("-z", "--single"), action = "store_true", default = FALSE,
-              help = "Use this option if you have single-end files. [%default]",
+              help = "Use this option if you have single-end files[doesn't need an argument]. [%default]",
               dest = "singleEnd"),
   make_option(c("-o", "--outSAMtype"), type = "character", default = "SortedByCoordinate",
               help = "Output sorted by coordinate Aligned.sortedByCoord.out.bam file (default: %default); Output unsorted Aligned.out.bam file (Unsorted); Output both unsorted and sorted files (UnsortedSortedByCoordinate).",
