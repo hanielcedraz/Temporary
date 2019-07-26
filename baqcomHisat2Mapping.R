@@ -64,7 +64,7 @@ option_list <- list(
 
 # get command line options, if help option encountered print help and exit,
 # otherwise if options not found on command line then set defaults,
-opt <- parse_args(OptionParser(option_list = option_list, description =  paste('Authors: OLIVEIRA, H.C. & CANTAO, M.E.', 'Version: 0.3.0', 'E-mail: hanielcedraz@gmail.com', sep = "\n", collapse = '\n')))
+opt <- parse_args(OptionParser(option_list = option_list, description =  paste('Authors: OLIVEIRA, H.C. & CANTAO, M.E.', 'Version: 0.3.1', 'E-mail: hanielcedraz@gmail.com', sep = "\n", collapse = '\n')))
 
 
 
@@ -312,7 +312,7 @@ if (!opt$singleEnd) {
                          '-p', ifelse(detectCores() < opt$procs, detectCores(), paste(opt$procs)),
                          '-x',
                          paste0(index_Folder,index_names),
-                         '-c',
+                         '-U',
                          paste0(index$PE1, collapse = ","),
                          paste0(mapping_Folder, '/', index$sampleName, '_unsorted_sample.sam'),
                          if (opt$PassMode) {
