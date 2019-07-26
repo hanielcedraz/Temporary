@@ -43,7 +43,7 @@ option_list <- list(
                 help  =  "Use this option if you ould like to run multiqc analysis. [default %default]",
                 dest  =  "multiqc"),
     make_option(c("-z", "--single"), action = "store_true", default = FALSE,
-                help = "Use this option if you have single-end files. [%default]",
+                help = "Use this option if you have single-end files[doesn't need an argument]. [%default]",
                 dest = "singleEnd"),
     make_option(c("-x", "--external"), action  =  'store', type  =  "character", default = 'FALSE',
                 help = "A space delimeted file with a single line contain several external parameters from HISAT2 [default %default]",
