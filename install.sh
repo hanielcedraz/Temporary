@@ -46,27 +46,51 @@ if [ "$(uname)" == "Linux" ];
       echo -e "\nSTAR symbolic link created successfully"
        if ! [ -d bin/hisat2-2.1.0 ];
         then
-              wget http://ccb.jhu.edu/software/hisat2/dl/hisat2-2.1.0-Linux_x86_64.zip -O bin/hisat2-2.1.0-Linux_x86_64.zip
-              cd bin/
-              unzip -q hisat2-2.1.0-Linux_x86_64.zip
-              cd ..
-              ln -s bin/hisat2-2.1.0/hisat2 hisat2
-              ln -s bin/hisat2-2.1.0/hisat2-build hisat2-build
-              ln -s bin/hisat2-2.1.0/hisat2_extract_exons.py
-              ln -s bin/hisat2-2.1.0/hisat2_extract_splice_sites.py
-              echo -e "\nhisat2 downloaded and symbolic link created successfully"
+            while true;
+            do
+              read -p "hisat2 doesn't exist in BAQCOM folder. Would you like to download it? [y,n] " dohisat
+              case $dohisat in
+                y|Y|yes|YES)
+                  wget http://ccb.jhu.edu/software/hisat2/dl/hisat2-2.1.0-Linux_x86_64.zip -O bin/hisat2-2.1.0-Linux_x86_64.zip
+                  cd bin/
+                  unzip -q hisat2-2.1.0-Linux_x86_64.zip
+                  cd ..
+                  ln -s bin/hisat2-2.1.0/hisat2 hisat2
+                  ln -s bin/hisat2-2.1.0/hisat2-build hisat2-build
+                  ln -s bin/hisat2-2.1.0/hisat2_extract_exons.py
+                  ln -s bin/hisat2-2.1.0/hisat2_extract_splice_sites.py
+                  echo -e "\nhisat2 downloaded and symbolic link created successfully"
+                  break;;
+                n|N|no|NO)
+                    echo -e "\nOk, I wont do that\n"
+                    break;;
+                *) echo "Insvalid option, specify y or n "
+              esac
+            done    
         else
              echo -e "\nhisat2 exists and doesn't need to download"
         fi
         if ! [ -d bin/subread-1.6.4-source ];
         then
-            wget https://sourceforge.net/projects/subread/files/subread-1.6.4/subread-1.6.4-source.tar.gz -O bin/subread-1.6.4-source.tar.gz
-            cd bin/
-            tar xzf subread-1.6.4-source.tar.gz
-            cd subread-1.6.4-source/src
-            make -f Makefile.Linux
-            cd ../../../
-            ln -s bin/subread-1.6.4-source/bin/featureCounts featureCounts
+            while true;
+            do
+                read -p "featureCounts doesn't exist in BAQCOM folder. Would you like to download it? [y,n] " doft
+                case $doft in
+                  y|Y|yes|YES)
+                    wget https://sourceforge.net/projects/subread/files/subread-1.6.4/subread-1.6.4-source.tar.gz -O bin/subread-1.6.4-source.tar.gz
+                    cd bin/
+                    tar xzf subread-1.6.4-source.tar.gz
+                    cd subread-1.6.4-source/src
+                    make -f Makefile.Linux
+                    cd ../../../
+                    ln -s bin/subread-1.6.4-source/bin/featureCounts featureCounts
+                    break;;
+                  n|N|no|NO)
+                      echo -e "\nOk, I wont do that\n"
+                      break;;
+                  *) echo "Insvalid option, specify y or n "
+              esac
+            done
         else
             echo -e "\nfeatureCounts exists and doesn't need to download"
         fi
